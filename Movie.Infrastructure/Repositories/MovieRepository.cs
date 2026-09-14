@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Movie.Domain.Interfaces;
 using Movie.Infrastructure.Data;
-using Movie.Infrastucture.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;
