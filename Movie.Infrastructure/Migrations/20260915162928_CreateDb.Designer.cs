@@ -11,7 +11,7 @@ using Movie.Infrastructure.Data;
 namespace Movie.Infrastructure.Migrations
 {
     [DbContext(typeof(MovieDbContext))]
-    [Migration("20260914210011_CreateDb")]
+    [Migration("20260915162928_CreateDb")]
     partial class CreateDb
     {
         /// <inheritdoc />

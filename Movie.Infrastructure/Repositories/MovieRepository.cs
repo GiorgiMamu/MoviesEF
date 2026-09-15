@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Movie.Infrastucture.Repositories
+namespace Movie.Infrastructure.Repositories
 {
     public class MovieRepository : IMovieRepository
     {
@@ -28,6 +28,12 @@ namespace Movie.Infrastucture.Repositories
             return await _movieDbContext.Movies
                 .Include(m => m.Studio)
                 .ToListAsync();
+        }
+        public async Task<Domain.Entities.Movie?> GetMovieByIdAsync(int id)
+        {
+            return await _movieDbContext.Movies
+                .Include(m => m.Studio)
+                .FirstOrDefaultAsync(m => m.Id == id);
         }
     }
 }
