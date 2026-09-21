@@ -54,14 +54,77 @@ namespace Movie.UI
             //    Console.WriteLine(movie);
             //}
 
-            var movieById = await movieService.GetMovieByIdAsync(3);
-            if (movieById != null)
+            //var movieById = await movieService.GetMovieByIdAsync(1);
+            //if (movieById != null)
+            //{
+            //    Console.WriteLine(movieById);
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Movie not found");
+            //}
+
+            Console.WriteLine("---");
+            var movies = await movieService.GetAllMoviesAsync();
+            foreach (var movie in movies)
             {
-                Console.WriteLine(movieById);
+                Console.WriteLine(movie);
             }
-            else
+
+            Console.WriteLine("\n---");
+            var createMovieDto = new CreateMovieDTO
             {
-                Console.WriteLine("Movie not found");
+                Title = "Home Alone",
+                ReleaseYear = 1990,
+                StudioId = 1 
+            };
+            await movieService.AddMovieAsync(createMovieDto);
+            Console.WriteLine($"added: {createMovieDto.Title}");
+
+            Console.WriteLine("\n---");
+            movies = await movieService.GetAllMoviesAsync();
+            foreach (var movie in movies)
+            {
+                Console.WriteLine(movie);
+            }
+
+            var movieToUpdate = movies.FirstOrDefault(m => m.Title == "Home Alone");
+            if (movieToUpdate != null)
+            {
+                Console.WriteLine("\n---");
+                var updateDto = new UpdateMovieDTO
+                {
+                    Id = movieToUpdate.Id,
+                    Title = "Home Alone 2: Lost in New York",
+                    ReleaseYear = 1992,
+                    StudioId = 1
+                };
+                await movieService.UpdateMovieAsync(updateDto);
+                Console.WriteLine($"updated ID {updateDto.Id}: {updateDto.Title}");
+            }
+
+            Console.WriteLine("\n---");
+            movies = await movieService.GetAllMoviesAsync();
+            foreach (var movie in movies)
+            {
+                Console.WriteLine(movie);
+            }
+
+            var movieToDelete = movies.FirstOrDefault();
+            if (movieToDelete != null)
+            {
+                Console.WriteLine("\n---");
+                var deleted = await movieService.DeleteMovieAsync(movieToDelete.Id);
+                Console.WriteLine(deleted
+                    ? $"deleted ID {movieToDelete.Id}: {movieToDelete.Title}"
+                    : $"ID {movieToDelete.Id} not found");
+            }
+
+            Console.WriteLine("\n---");
+            movies = await movieService.GetAllMoviesAsync();
+            foreach (var movie in movies)
+            {
+                Console.WriteLine(movie);
             }
         }
     }

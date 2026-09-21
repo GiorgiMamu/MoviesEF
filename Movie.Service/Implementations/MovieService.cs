@@ -89,6 +89,54 @@ namespace Movie.Service.Implementations
             await _movieRepository.AddMovieAsync(movie);
 
         }
+        public async Task UpdateMovieAsync(UpdateMovieDTO movieDto)
+        {
+            if (movieDto == null)
+            {
+                throw new ArgumentNullException(nameof(movieDto));
+            }
+            if (movieDto.Id <= 0)
+            {
+                throw new ArgumentException("Movie ID must be a positive integer.", nameof(movieDto.Id));
+            }
+            if (string.IsNullOrWhiteSpace(movieDto.Title))
+            {
+                throw new ArgumentException("Movie title cannot be null or whitespace.", nameof(movieDto.Title));
+            }
+            if (movieDto.ReleaseYear <= 0)
+            {
+                throw new ArgumentException("Release year must be a positive integer.", nameof(movieDto.ReleaseYear));
+            }
+            if (movieDto.StudioId <= 0)
+            {
+                throw new ArgumentException("Studio ID must be a positive integer.", nameof(movieDto.StudioId));
+            }
+            if (movieDto.ReleaseYear > DateTime.Now.Year)
+            {
+                throw new ArgumentException("Release year must be a valid year.", nameof(movieDto.ReleaseYear));
+            }
 
+            var existingMovie = await _movieRepository.GetMovieByIdAsync(movieDto.Id);
+            if (existingMovie == null)
+            {
+                throw new KeyNotFoundException($"Movie with ID {movieDto.Id} was not found.");
+            }
+
+            existingMovie.Title = movieDto.Title;
+            existingMovie.ReleaseYear = movieDto.ReleaseYear;
+            existingMovie.StudioId = movieDto.StudioId;
+
+            await _movieRepository.UpdateMovieAsync(existingMovie);
+        }
+
+        public async Task<bool> DeleteMovieAsync(int id)
+        {
+            if (id <= 0)
+            {
+                throw new ArgumentException("Movie ID must be a positive integer.", nameof(id));
+            }
+
+            return await _movieRepository.DeleteMovieAsync(id);
+        }
     }
 }
