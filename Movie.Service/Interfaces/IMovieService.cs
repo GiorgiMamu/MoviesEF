@@ -1,17 +1,29 @@
 ﻿using Movie.Domain.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Movie.Service.Interfaces
+namespace Movie.Service.Interfaces;
+
+public interface IMovieService
 {
-    public interface IMovieService
-    {
-        Task<ICollection<MovieDTO>> GetAllMoviesAsync();
-        Task AddMovieAsync(CreateMovieDTO movieDto);
-        Task<MovieDTO?> GetMovieByIdAsync(int id);
-        Task UpdateMovieAsync(UpdateMovieDTO movieDto);
-        Task<bool> DeleteMovieAsync(int id);
+    Task<ICollection<MovieDTO>> GetAllMoviesAsync();
+    Task<MovieDTO> GetMovieByIdAsync(int id);
+    Task AddMovieAsync(CreateMovieDTO movieDto);
+    Task UpdateMovieAsync(int id, UpdateMovieDTO movieDto);
+    Task DeleteMovieAsync(int id);
 
-    }
+    Task<ICollection<MovieDTO>> SearchMoviesByStudioAsync(
+        int year,
+        string studioName,
+        int minimumActorCount);
+
+    Task<ICollection<MovieDTO>> SearchMoviesByCountryAsync(
+        string countryName,
+        int minimumYear,
+        int maximumActorCount);
+
+    Task<ICollection<MovieDTO>> SearchMoviesAdvancedAsync(
+        int fromYear,
+        int toYear,
+        string countryName,
+        string titleText,
+        int minimumActorCount);
 }

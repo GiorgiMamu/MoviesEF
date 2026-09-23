@@ -1,142 +1,203 @@
-﻿using Movie.Service.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Movie.Domain.DTOs;
 using Movie.Domain.Interfaces;
-using Movie.Domain.DTOs;
+using Movie.Service.Interfaces;
+using MovieEntity = Movie.Domain.Entities.Movie;
 
+namespace Movie.Service.Implementations;
 
-namespace Movie.Service.Implementations
+public class MovieService : IMovieService
 {
-    public class MovieService : IMovieService
+    private readonly IMovieRepository _movieRepository;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public MovieService(IMovieRepository movieRepository, IUnitOfWork unitOfWork)
     {
+        _movieRepository = movieRepository;
+        _unitOfWork = unitOfWork;
+    }
 
-        private readonly IMovieRepository _movieRepository;
+    public async Task<ICollection<MovieDTO>> GetAllMoviesAsync()
+    {
+        var movies = await _movieRepository.GetAllMoviesAsync();
 
+        return movies.Select(MapToDto).ToList();
+    }
 
-        public MovieService(IMovieRepository movieRepository)
+    public async Task<MovieDTO> GetMovieByIdAsync(int id)
+    {
+        ValidateId(id);
+
+        var movie = await _movieRepository.GetMovieByIdAsync(id);
+
+        if (movie == null)
         {
-            _movieRepository = movieRepository;
+            throw new ArgumentException("Movie not found.", nameof(id));
         }
 
-        public async Task<ICollection<MovieDTO>> GetAllMoviesAsync()
+        return MapToDto(movie);
+    }
+
+    public async Task AddMovieAsync(CreateMovieDTO movieDto)
+    {
+        ArgumentNullException.ThrowIfNull(movieDto);
+        ValidateMovie(movieDto.Title, movieDto.ReleaseYear, movieDto.StudioId);
+
+        var movie = new MovieEntity
         {
-            var movies = await _movieRepository.GetAllMoviesAsync();
+            Title = movieDto.Title,
+            ReleaseYear = movieDto.ReleaseYear,
+            StudioId = movieDto.StudioId
+        };
 
-            var movieDto = movies.Select(m => new MovieDTO
-            {
-                Id = m.Id,
-                Title = m.Title,
-                ReleaseYear = m.ReleaseYear,
-                StudioName = m.Studio?.Name,
-            }).ToList();
+        await _movieRepository.AddMovieAsync(movie);
+        await _unitOfWork.SaveChangesAsync();
+    }
 
-            return movieDto;
+    public async Task UpdateMovieAsync(int id, UpdateMovieDTO movieDto)
+    {
+        ValidateId(id);
+        ArgumentNullException.ThrowIfNull(movieDto);
+        ValidateMovie(movieDto.Title, movieDto.ReleaseYear, movieDto.StudioId);
+
+        var movie = new MovieEntity
+        {
+            Title = movieDto.Title,
+            ReleaseYear = movieDto.ReleaseYear,
+            StudioId = movieDto.StudioId
+        };
+
+        await _movieRepository.UpdateMovieAsync(id, movie);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task DeleteMovieAsync(int id)
+    {
+        ValidateId(id);
+
+        await _movieRepository.DeleteMovieAsync(id);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task<ICollection<MovieDTO>> SearchMoviesByStudioAsync(
+        int year,
+        string studioName,
+        int minimumActorCount)
+    {
+        if (year < 0)
+        {
+            throw new ArgumentException("Year cannot be negative.", nameof(year));
+        }
+        if (string.IsNullOrWhiteSpace(studioName))
+        {
+            throw new ArgumentException("Studio name cannot be null or empty.", nameof(studioName));
+        }
+        if (minimumActorCount < 0)
+        {
+            throw new ArgumentException("Minimum actor count cannot be negative.", nameof(minimumActorCount));
         }
 
-        public async Task<MovieDTO?> GetMovieByIdAsync(int id)
+        var movies = await _movieRepository.SearchMoviesByStudioAsync(year, studioName, minimumActorCount);
+
+        return movies.Select(MapToDto).ToList();
+    }
+
+    public async Task<ICollection<MovieDTO>> SearchMoviesByCountryAsync(
+        string countryName,
+        int minimumYear,
+        int maximumActorCount)
+    {
+        if (string.IsNullOrWhiteSpace(countryName))
         {
-            if (id <= 0)
-            {
-                throw new ArgumentException("Movie ID must be a positive integer.", nameof(id));
-            }
-            var movie = await _movieRepository.GetMovieByIdAsync(id);
-            if (movie == null)
-            {
-                return null;
-            }
-            return new MovieDTO
-            {
-                Id = movie.Id,
-                Title = movie.Title,
-                ReleaseYear = movie.ReleaseYear,
-                StudioName = movie.Studio?.Name,
-            };
+            throw new ArgumentException("Country name cannot be null or empty.", nameof(countryName));
+        }
+        if (minimumYear < 0)
+        {
+            throw new ArgumentException("Minimum year cannot be negative.", nameof(minimumYear));
+        }
+        if (maximumActorCount < 0)
+        {
+            throw new ArgumentException("Maximum actor count cannot be negative.", nameof(maximumActorCount));
         }
 
+        var movies = await _movieRepository.SearchMoviesByCountryAsync(countryName, minimumYear, maximumActorCount);
 
-        public async Task AddMovieAsync(CreateMovieDTO movieDto)
+        return movies.Select(MapToDto).ToList();
+    }
+
+    public async Task<ICollection<MovieDTO>> SearchMoviesAdvancedAsync(
+        int fromYear,
+        int toYear,
+        string countryName,
+        string titleText,
+        int minimumActorCount)
+    {
+        if (fromYear < 0)
         {
-            if(movieDto == null)
-            {
-                throw new ArgumentNullException(nameof(movieDto));
-            }
-            if(string.IsNullOrWhiteSpace(movieDto.Title))
-            {
-                throw new ArgumentException("Movie title cannot be null or whitespace.", nameof(movieDto.Title));
-            }
-            if(movieDto.ReleaseYear <= 0)
-            {
-                throw new ArgumentException("Release year must be a positive integer.", nameof(movieDto.ReleaseYear));
-            }
-            if(movieDto.StudioId <= 0)
-            {
-                throw new ArgumentException("Studio ID must be a positive integer.", nameof(movieDto.StudioId));
-            }
-            if (movieDto.ReleaseYear > DateTime.Now.Year)
-            {
-                throw new ArgumentException("Release year must be a valid year.", nameof(movieDto.ReleaseYear));
-            }
-
-
-            var movie = new Domain.Entities.Movie
-            {
-                Title = movieDto.Title,
-                ReleaseYear = movieDto.ReleaseYear,
-                StudioId = movieDto.StudioId
-            };
-
-            await _movieRepository.AddMovieAsync(movie);
-
+            throw new ArgumentException("From year cannot be negative.", nameof(fromYear));
         }
-        public async Task UpdateMovieAsync(UpdateMovieDTO movieDto)
+        if (toYear < fromYear)
         {
-            if (movieDto == null)
-            {
-                throw new ArgumentNullException(nameof(movieDto));
-            }
-            if (movieDto.Id <= 0)
-            {
-                throw new ArgumentException("Movie ID must be a positive integer.", nameof(movieDto.Id));
-            }
-            if (string.IsNullOrWhiteSpace(movieDto.Title))
-            {
-                throw new ArgumentException("Movie title cannot be null or whitespace.", nameof(movieDto.Title));
-            }
-            if (movieDto.ReleaseYear <= 0)
-            {
-                throw new ArgumentException("Release year must be a positive integer.", nameof(movieDto.ReleaseYear));
-            }
-            if (movieDto.StudioId <= 0)
-            {
-                throw new ArgumentException("Studio ID must be a positive integer.", nameof(movieDto.StudioId));
-            }
-            if (movieDto.ReleaseYear > DateTime.Now.Year)
-            {
-                throw new ArgumentException("Release year must be a valid year.", nameof(movieDto.ReleaseYear));
-            }
-
-            var existingMovie = await _movieRepository.GetMovieByIdAsync(movieDto.Id);
-            if (existingMovie == null)
-            {
-                throw new KeyNotFoundException($"Movie with ID {movieDto.Id} was not found.");
-            }
-
-            existingMovie.Title = movieDto.Title;
-            existingMovie.ReleaseYear = movieDto.ReleaseYear;
-            existingMovie.StudioId = movieDto.StudioId;
-
-            await _movieRepository.UpdateMovieAsync(existingMovie);
+            throw new ArgumentException("To year cannot be less than from year.", nameof(toYear));
+        }
+        if (string.IsNullOrWhiteSpace(countryName))
+        {
+            throw new ArgumentException("Country name cannot be null or empty.", nameof(countryName));
+        }
+        if (titleText == null)
+        {
+            throw new ArgumentNullException(nameof(titleText));
+        }
+        if (minimumActorCount < 0)
+        {
+            throw new ArgumentException("Minimum actor count cannot be negative.", nameof(minimumActorCount));
         }
 
-        public async Task<bool> DeleteMovieAsync(int id)
-        {
-            if (id <= 0)
-            {
-                throw new ArgumentException("Movie ID must be a positive integer.", nameof(id));
-            }
+        var movies = await _movieRepository.SearchMoviesAdvancedAsync(
+            fromYear,
+            toYear,
+            countryName,
+            titleText,
+            minimumActorCount);
 
-            return await _movieRepository.DeleteMovieAsync(id);
+        return movies.Select(MapToDto).ToList();
+    }
+
+    private static MovieDTO MapToDto(MovieEntity movie)
+    {
+        return new MovieDTO
+        {
+            Id = movie.Id,
+            Title = movie.Title,
+            ReleaseYear = movie.ReleaseYear,
+            StudioName = movie.Studio.Name
+        };
+    }
+
+    private static void ValidateId(int id)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentException("Movie ID must be a positive integer.", nameof(id));
+        }
+    }
+
+    private static void ValidateMovie(string title, int releaseYear, int studioId)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            throw new ArgumentException("Movie title cannot be null or empty.", nameof(title));
+        }
+        if (releaseYear < 0)
+        {
+            throw new ArgumentException("Movie release year cannot be negative.", nameof(releaseYear));
+        }
+        if (releaseYear > DateTime.Now.Year)
+        {
+            throw new ArgumentException("Movie release year cannot be from future.", nameof(releaseYear));
+        }
+        if (studioId <= 0)
+        {
+            throw new ArgumentException("Movie studio ID must be a positive integer.", nameof(studioId));
         }
     }
 }

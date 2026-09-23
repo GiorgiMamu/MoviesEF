@@ -1,59 +1,118 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Movie.Domain.Interfaces;
 using Movie.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using MovieEntity = Movie.Domain.Entities.Movie;
 
-namespace Movie.Infrastructure.Repositories
+namespace Movie.Infrastructure.Repositories;
+
+public class MovieRepository : IMovieRepository
 {
-    public class MovieRepository : IMovieRepository
+    private readonly MovieDbContext _movieDbContext;
+
+    public MovieRepository(MovieDbContext movieDbContext)
     {
+        _movieDbContext = movieDbContext;
+    }
 
-        private readonly MovieDbContext _movieDbContext;
-        public MovieRepository(MovieDbContext movieDbContext)
+    public async Task<ICollection<MovieEntity>> GetAllMoviesAsync()
+    {
+        return await _movieDbContext.Movies
+            .Include(m => m.Studio)
+            .ToListAsync();
+    }
+
+    public async Task<MovieEntity?> GetMovieByIdAsync(int id)
+    {
+        return await _movieDbContext.Movies
+            .Include(m => m.Studio)
+            .FirstOrDefaultAsync(m => m.Id == id);
+    }
+
+    public async Task AddMovieAsync(MovieEntity movie)
+    {
+        await _movieDbContext.Movies.AddAsync(movie);
+    }
+
+    public async Task UpdateMovieAsync(int id, MovieEntity movie)
+    {
+        var existingMovie = await _movieDbContext.Movies
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (existingMovie == null)
         {
-            _movieDbContext = movieDbContext;
+            throw new ArgumentException("Movie not found");
         }
 
+        existingMovie.Title = movie.Title;
+        existingMovie.ReleaseYear = movie.ReleaseYear;
+        existingMovie.StudioId = movie.StudioId;
+    }
 
-        public async Task AddMovieAsync(Domain.Entities.Movie movie)
+    public async Task DeleteMovieAsync(int id)
+    {
+        var existingMovie = await _movieDbContext.Movies
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (existingMovie == null)
         {
-            await _movieDbContext.Movies.AddAsync(movie);
-            await _movieDbContext.SaveChangesAsync();
+            throw new ArgumentException("Movie not found");
         }
 
-        public async Task<ICollection<Domain.Entities.Movie>> GetAllMoviesAsync()
-        {
-            return await _movieDbContext.Movies
-                .Include(m => m.Studio)
-                .ToListAsync();
-        }
-        public async Task<Domain.Entities.Movie?> GetMovieByIdAsync(int id)
-        {
-            return await _movieDbContext.Movies
-                .Include(m => m.Studio)
-                .FirstOrDefaultAsync(m => m.Id == id);
-        }
+        _movieDbContext.Movies.Remove(existingMovie);
+    }
 
-        public async Task UpdateMovieAsync(Domain.Entities.Movie movie)
-        {
-            _movieDbContext.Movies.Update(movie);
-            await _movieDbContext.SaveChangesAsync();
-        }
+    public async Task<ICollection<MovieEntity>> SearchMoviesByStudioAsync(
+        int year,
+        string studioName,
+        int minimumActorCount)
+    {
+        return await _movieDbContext.Movies
+            .Include(m => m.Studio)
+            .Include(m => m.Actors)
+            .Where(m => m.ReleaseYear >= year
+                        && m.Studio.Name == studioName
+                        && m.Actors.Count >= minimumActorCount)
+            .OrderByDescending(m => m.ReleaseYear)
+            .ThenBy(m => m.Title)
+            .ToListAsync();
+    }
 
-        public async Task<bool> DeleteMovieAsync(int id)
-        {
-            var movie = await _movieDbContext.Movies.FindAsync(id);
+    public async Task<ICollection<MovieEntity>> SearchMoviesByCountryAsync(
+        string countryName,
+        int minimumYear,
+        int maximumActorCount)
+    {
+        return await _movieDbContext.Movies
+            .Include(m => m.Studio)
+            .Include(m => m.Actors)
+            .Where(m => m.Studio.Country.Name == countryName
+                        && m.ReleaseYear >= minimumYear
+                        && m.Actors.Count <= maximumActorCount)
+            .OrderBy(m => m.Actors.Count)
+            .ThenByDescending(m => m.ReleaseYear)
+            .ThenBy(m => m.Title)
+            .ToListAsync();
+    }
 
-            if (movie == null)
-            {
-                return false;
-            }
-
-            _movieDbContext.Movies.Remove(movie);
-            await _movieDbContext.SaveChangesAsync();
-            return true;
-        }
+    public async Task<ICollection<MovieEntity>> SearchMoviesAdvancedAsync(
+        int fromYear,
+        int toYear,
+        string countryName,
+        string titleText,
+        int minimumActorCount)
+    {
+        return await _movieDbContext.Movies
+            .Include(m => m.Studio)
+            .Include(m => m.Actors)
+            .Where(m => m.ReleaseYear >= fromYear
+                        && m.ReleaseYear <= toYear
+                        && m.Studio.Country.Name == countryName
+                        && m.Title.Contains(titleText)
+                        && m.Actors.Count >= minimumActorCount)
+            .OrderByDescending(m => m.Actors.Count)
+            .ThenByDescending(m => m.ReleaseYear)
+            .ThenBy(m => m.Studio.Name)
+            .ThenBy(m => m.Title)
+            .ToListAsync();
     }
 }
