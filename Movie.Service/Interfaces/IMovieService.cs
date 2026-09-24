@@ -10,17 +10,17 @@ public interface IMovieService
     Task UpdateMovieAsync(int id, UpdateMovieDTO movieDto);
     Task DeleteMovieAsync(int id);
 
-    Task<ICollection<MovieDTO>> SearchMoviesByStudioAsync(
+    Task<ICollection<MovieSearchDTO>> SearchMoviesByStudioAsync(
         int year,
         string studioName,
         int minimumActorCount);
 
-    Task<ICollection<MovieDTO>> SearchMoviesByCountryAsync(
+    Task<ICollection<MovieSearchDTO>> SearchMoviesByCountryAsync(
         string countryName,
         int minimumYear,
         int maximumActorCount);
 
-    Task<ICollection<MovieDTO>> SearchMoviesAdvancedAsync(
+    Task<ICollection<MovieSearchDTO>> SearchMoviesAdvancedAsync(
         int fromYear,
         int toYear,
         string countryName,

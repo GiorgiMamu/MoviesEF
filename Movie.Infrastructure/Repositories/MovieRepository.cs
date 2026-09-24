@@ -66,9 +66,7 @@ public class MovieRepository : IMovieRepository
         string studioName,
         int minimumActorCount)
     {
-        return await _movieDbContext.Movies
-            .Include(m => m.Studio)
-            .Include(m => m.Actors)
+        return await MoviesForSearch()
             .Where(m => m.ReleaseYear >= year
                         && m.Studio.Name == studioName
                         && m.Actors.Count >= minimumActorCount)
@@ -82,9 +80,7 @@ public class MovieRepository : IMovieRepository
         int minimumYear,
         int maximumActorCount)
     {
-        return await _movieDbContext.Movies
-            .Include(m => m.Studio)
-            .Include(m => m.Actors)
+        return await MoviesForSearch()
             .Where(m => m.Studio.Country.Name == countryName
                         && m.ReleaseYear >= minimumYear
                         && m.Actors.Count <= maximumActorCount)
@@ -101,9 +97,7 @@ public class MovieRepository : IMovieRepository
         string titleText,
         int minimumActorCount)
     {
-        return await _movieDbContext.Movies
-            .Include(m => m.Studio)
-            .Include(m => m.Actors)
+        return await MoviesForSearch()
             .Where(m => m.ReleaseYear >= fromYear
                         && m.ReleaseYear <= toYear
                         && m.Studio.Country.Name == countryName
@@ -114,5 +108,13 @@ public class MovieRepository : IMovieRepository
             .ThenBy(m => m.Studio.Name)
             .ThenBy(m => m.Title)
             .ToListAsync();
+    }
+
+    private IQueryable<MovieEntity> MoviesForSearch()
+    {
+        return _movieDbContext.Movies
+            .Include(m => m.Studio)
+                .ThenInclude(s => s.Country)
+            .Include(m => m.Actors);
     }
 }

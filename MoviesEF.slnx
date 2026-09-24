@@ -2,5 +2,6 @@
   <Project Path="Movie.Domain/Movie.Domain.csproj" />
   <Project Path="Movie.Infrastructure/Movie.Infrastructure.csproj" />
   <Project Path="Movie.Service/Movie.Service.csproj" />
+  <Project Path="Movie.Test/Movie.Test.csproj" Id="f8e4522b-b3c9-4405-9107-bddeb119f477" />
   <Project Path="Movie.UI/Movie.UI.csproj" />
 </Solution>

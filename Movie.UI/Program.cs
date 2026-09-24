@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Movie.Domain.DTOs;
 using Movie.Domain.Interfaces;
 using Movie.Infrastructure.Data;
 using Movie.Infrastructure.Repositories;
@@ -27,7 +26,7 @@ internal class Program
         var movieService = scope.ServiceProvider.GetRequiredService<IMovieService>();
         var actorService = scope.ServiceProvider.GetRequiredService<IActorService>();
 
-        PrintMovies("All movies", await movieService.GetAllMoviesAsync());
+        Print("All movies", await movieService.GetAllMoviesAsync());
 
         var actors = await actorService.GetAllActorsAsync();
         Console.WriteLine("Actors");
@@ -37,25 +36,25 @@ internal class Program
         }
         Console.WriteLine();
 
-        PrintMovies(
+        Print(
             "Task 1: Warner Bros, from 1990, at least 1 actor",
             await movieService.SearchMoviesByStudioAsync(1990, "Warner Bros", 1));
 
-        PrintMovies(
+        Print(
             "Task 2: USA, from 1990, at most 5 actors",
             await movieService.SearchMoviesByCountryAsync("USA", 1990, 5));
 
-        PrintMovies(
+        Print(
             "Task 3: USA, 1990-2000, title contains 'Home', at least 1 actor",
             await movieService.SearchMoviesAdvancedAsync(1990, 2000, "USA", "Home", 1));
     }
 
-    private static void PrintMovies(string header, ICollection<MovieDTO> movies)
+    private static void Print<T>(string header, IEnumerable<T> items)
     {
         Console.WriteLine(header);
-        foreach (var movie in movies)
+        foreach (var item in items)
         {
-            Console.WriteLine(movie);
+            Console.WriteLine(item);
         }
         Console.WriteLine();
     }

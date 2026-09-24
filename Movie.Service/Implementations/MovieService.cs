@@ -78,7 +78,7 @@ public class MovieService : IMovieService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task<ICollection<MovieDTO>> SearchMoviesByStudioAsync(
+    public async Task<ICollection<MovieSearchDTO>> SearchMoviesByStudioAsync(
         int year,
         string studioName,
         int minimumActorCount)
@@ -98,10 +98,10 @@ public class MovieService : IMovieService
 
         var movies = await _movieRepository.SearchMoviesByStudioAsync(year, studioName, minimumActorCount);
 
-        return movies.Select(MapToDto).ToList();
+        return movies.Select(MapToSearchDto).ToList();
     }
 
-    public async Task<ICollection<MovieDTO>> SearchMoviesByCountryAsync(
+    public async Task<ICollection<MovieSearchDTO>> SearchMoviesByCountryAsync(
         string countryName,
         int minimumYear,
         int maximumActorCount)
@@ -121,10 +121,10 @@ public class MovieService : IMovieService
 
         var movies = await _movieRepository.SearchMoviesByCountryAsync(countryName, minimumYear, maximumActorCount);
 
-        return movies.Select(MapToDto).ToList();
+        return movies.Select(MapToSearchDto).ToList();
     }
 
-    public async Task<ICollection<MovieDTO>> SearchMoviesAdvancedAsync(
+    public async Task<ICollection<MovieSearchDTO>> SearchMoviesAdvancedAsync(
         int fromYear,
         int toYear,
         string countryName,
@@ -159,7 +159,7 @@ public class MovieService : IMovieService
             titleText,
             minimumActorCount);
 
-        return movies.Select(MapToDto).ToList();
+        return movies.Select(MapToSearchDto).ToList();
     }
 
     private static MovieDTO MapToDto(MovieEntity movie)
@@ -170,6 +170,19 @@ public class MovieService : IMovieService
             Title = movie.Title,
             ReleaseYear = movie.ReleaseYear,
             StudioName = movie.Studio.Name
+        };
+    }
+
+    private static MovieSearchDTO MapToSearchDto(MovieEntity movie)
+    {
+        return new MovieSearchDTO
+        {
+            Id = movie.Id,
+            Title = movie.Title,
+            ReleaseYear = movie.ReleaseYear,
+            StudioName = movie.Studio.Name,
+            CountryName = movie.Studio.Country.Name,
+            ActorCount = movie.Actors.Count
         };
     }
 
