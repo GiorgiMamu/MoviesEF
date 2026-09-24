@@ -13,20 +13,28 @@ public class MovieDbContext : DbContext
     public DbSet<Actor> Actors { get; set; } = null!;
     public DbSet<StudioDetails> StudioDetails { get; set; } = null!;
 
+    public MovieDbContext()
+    {
+
+    }
+
+    public MovieDbContext(DbContextOptions<MovieDbContext> options) : base(options)
+    {
+    }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (optionsBuilder.IsConfigured)
+        if (!optionsBuilder.IsConfigured)
         {
-            return;
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json")
+                .Build();
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            optionsBuilder.UseSqlServer(connectionString);
         }
-
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .Build();
-
-        optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
     }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
