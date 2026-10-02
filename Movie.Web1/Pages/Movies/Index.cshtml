@@ -1,0 +1,81 @@
+﻿@page
+@model Movie.Web1.Pages.Movies.IndexModel
+<link rel="stylesheet" href="~/css/Movie.css">
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @TempData["Error"]
+    </div>
+}
+
+<div class="movies-container">
+    <h1 class="movies-title">Movies</h1>
+
+    <form method="post" asp-page-handler="Search" class="search-form">
+        <div class="search-field">
+            <label asp-for="Year">Release Year</label>
+            <input asp-for="Year" type="number" placeholder="e.g. 2020" />
+        </div>
+
+        <div class="search-field">
+            <label asp-for="StudioName">Studio Name</label>
+            <input asp-for="StudioName" type="text" placeholder="e.g. Warner Bros." />
+        </div>
+
+        <div class="search-field">
+            <label asp-for="MinimumActorCount">Minimum Actors</label>
+            <input asp-for="MinimumActorCount" type="number" placeholder="e.g. 3" />
+        </div>
+
+        <div class="search-actions">
+            <button type="submit" class="search-btn">Search</button>
+            <a class="btn btn-danger" asp-page="/Movies/Index">Reset Filter</a>
+        </div>
+    </form>
+
+    <table class="movies-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Release Year</th>
+                <th>Studio Name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var movie in Model.Movies)
+            {
+                <tr>
+                    <td>
+                        <a class="movie-title-link" asp-page="/Movies/Details" asp-route-id="@movie.Id">
+                            @movie.Title
+                        </a>
+                    </td>
+                    <td>@movie.ReleaseYear</td>
+                    <td>@movie.StudioName</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a class="details-btn" asp-page="/Movies/Details" asp-route-id="@movie.Id">See Details</a>
+
+                            <a class="edit-btn" asp-page="/Movies/Edit" asp-route-id="@movie.Id">Edit</a>
+
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@movie.Id" class="delete-form">
+                                <button type="submit" class="delete-btn">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a class="btn btn-primary mt-3" asp-page="/Movies/Create">Create Movie</a>
+</div>

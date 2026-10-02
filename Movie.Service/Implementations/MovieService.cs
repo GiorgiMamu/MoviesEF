@@ -16,9 +16,9 @@ public class MovieService : IMovieService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<ICollection<MovieDTO>> GetAllMoviesAsync()
+    public async Task<ICollection<MovieDTO>> GetAllMoviesAsync(CancellationToken cancellationToken = default)
     {
-        var movies = await _movieRepository.GetAllMoviesAsync();
+        var movies = await _movieRepository.GetAllMoviesAsync(cancellationToken);
 
         return movies.Select(MapToDto).ToList();
     }
@@ -169,6 +169,7 @@ public class MovieService : IMovieService
             Id = movie.Id,
             Title = movie.Title,
             ReleaseYear = movie.ReleaseYear,
+            StudioId = movie.StudioId,
             StudioName = movie.Studio.Name
         };
     }

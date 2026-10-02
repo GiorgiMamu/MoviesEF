@@ -1,0 +1,39 @@
+﻿@page
+@model Movie.Web1.Pages.Movies.DetailsModel
+
+<link rel="stylesheet" href="~/css/Movie.css">
+
+<div class="details-container">
+    <div class="details-card">
+
+        <h1 class="details-title">@Model.Movie.Title</h1>
+
+        <div class="details-info">
+            <div class="details-item">
+                <span class="details-label">Movie ID</span>
+                <span class="details-value">@Model.Movie.Id</span>
+            </div>
+
+            <div class="details-item">
+                <span class="details-label">Release Year</span>
+                <span class="details-value">@Model.Movie.ReleaseYear</span>
+            </div>
+
+            <div class="details-item">
+                <span class="details-label">Studio</span>
+                <span class="details-value">@Model.Movie.StudioName</span>
+            </div>
+
+            <div class="details-item">
+                <span class="details-label">Studio ID</span>
+                <span class="details-value">@Model.Movie.StudioId</span>
+            </div>
+        </div>
+
+        <div class="details-actions">
+            <a class="back-btn" asp-page="/Movies/Index">← Back to Movies</a>
+            <a class="edit-btn" asp-page="/Movies/Edit" asp-route-id="@Model.Movie.Id">Edit</a>
+        </div>
+
+    </div>
+</div>

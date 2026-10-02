@@ -1,0 +1,99 @@
+﻿
+@page
+@model Movie.Web1.Pages.Movies.CreateModel
+
+<link rel="stylesheet" href="~/css/Movie.css">
+
+@if (!Model.ModelState.IsValid)
+{
+<div class="alert alert-danger" role="alert">
+        <ul>
+            @foreach (var error in Model.ModelState.Values.SelectMany(x => x.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+
+@if (TempData["Success"] != null)
+{
+<div class="alert alert-success" role="alert">
+        @TempData["Success"]
+    </div>
+}
+
+
+
+
+
+<div class="create-container">
+
+    <div class="create-card">
+
+        <h1 class="create-title">Create Movie</h1>
+
+        <p class="create-subtitle">
+            Add a new movie to the collection
+        </p>
+
+        <form method="post">
+
+            <div class="form-group">
+                <label asp-for="Movie.Title">Movie Title</label>
+
+                <input asp-for="Movie.Title"
+                       class="form-control"
+                       placeholder="Enter movie title" />
+
+                <span asp-validation-for="Movie.Title"
+                      class="validation-message">
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Movie.ReleaseYear">Release Year</label>
+
+                <input asp-for="Movie.ReleaseYear"
+                       type="number"
+                       class="form-control"
+                       placeholder="Enter release year" />
+
+                <span asp-validation-for="Movie.ReleaseYear"
+                      class="validation-message">
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Movie.StudioId">Studio ID</label>
+
+                <input asp-for="Movie.StudioId"
+                       type="number"
+                       class="form-control"
+                       placeholder="Enter studio ID" />
+
+                <span asp-validation-for="Movie.StudioId"
+                      class="validation-message">
+                </span>
+            </div>
+
+            <div class="form-actions">
+
+                <a asp-page="/Movies/Index"
+                   class="cancel-btn">
+                    Cancel
+                </a>
+
+                <button type="submit"
+                        class="create-btn">
+                    Create Movie
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>

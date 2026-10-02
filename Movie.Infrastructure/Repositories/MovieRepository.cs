@@ -14,11 +14,11 @@ public class MovieRepository : IMovieRepository
         _movieDbContext = movieDbContext;
     }
 
-    public async Task<ICollection<MovieEntity>> GetAllMoviesAsync()
+    public async Task<ICollection<MovieEntity>> GetAllMoviesAsync( CancellationToken cancellationToken = default )
     {
         return await _movieDbContext.Movies
             .Include(m => m.Studio)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<MovieEntity?> GetMovieByIdAsync(int id)

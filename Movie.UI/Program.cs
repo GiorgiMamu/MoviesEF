@@ -26,7 +26,9 @@ internal class Program
         var movieService = scope.ServiceProvider.GetRequiredService<IMovieService>();
         var actorService = scope.ServiceProvider.GetRequiredService<IActorService>();
 
-        Print("All movies", await movieService.GetAllMoviesAsync());
+        CancellationTokenSource cts = new CancellationTokenSource();
+
+        Print("All movies", await movieService.GetAllMoviesAsync(cts.Token));
 
         var actors = await actorService.GetAllActorsAsync();
         Console.WriteLine("Actors");
